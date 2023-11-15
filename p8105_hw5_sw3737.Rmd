@@ -54,3 +54,5 @@ ggplot(tidy_data, aes(x = week, y = observation, group = interaction(arm, subjec
   theme_minimal()
 ```
 
+Comment: The spaghetti plot suggests a divergence in trajectories between the control and experimental groups over time, with the experimental group showing an upward trend, indicating a potential effect of the treatment. In contrast, the control group's measurements remain relatively constant. The variability within the experimental group is also noticeably greater, implying a varied response to the intervention across different subjects.
+
