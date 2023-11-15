@@ -70,3 +70,19 @@ alpha <- 0.05
 num_datasets <- 5000
 ```
 
+## Simulating Datasets and Conducting t-tests
+```{r}
+results <- data.frame(mu = numeric(), p_value = numeric(), mu_hat = numeric(), reject_null = logical())
+
+for (mu in mu_values) {
+  for (i in 1:num_datasets) {
+    sample_data <- rnorm(n, mean = mu, sd = sigma)
+    test_result <- broom::tidy(t.test(sample_data, mu = 0))
+    mu_hat <- test_result$estimate
+    p_value <- test_result$p.value
+    reject_null <- p_value < alpha
+    results <- rbind(results, data.frame(mu, p_value, mu_hat, reject_null))
+  }
+}
+```
+
