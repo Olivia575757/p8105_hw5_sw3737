@@ -6,6 +6,28 @@ output: github_document
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+library(purrr)
+library(dplyr)
+library(tidyr)
+library(readr)
+```
+
+# Problem 1
+
+## Creating a Dataframe and Binding the Data
+```{r}
+file_names <- list.files(path = "data", pattern = "*.csv", full.names = TRUE)
+data_list <- map(file_names, read_csv)
+combined_data <- bind_rows(data_list, .id = "subject_id")
+```
+
+## Tidying the Data
+```{r}
+combined_data <- combined_data %>%
+  mutate(arm = ifelse(grepl("con", subject_id), "control", "experimental"),
+         subject_id = gsub(".*_(\\d+)", "\\1", subject_id)) %>%
+  pivot_longer(cols = starts_with("week"), 
+               names_to = "week", 
+               values_to = "observation")
 ```
 
