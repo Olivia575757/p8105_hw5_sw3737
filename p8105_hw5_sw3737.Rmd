@@ -86,3 +86,14 @@ for (mu in mu_values) {
 }
 ```
 
+## Analyzing Results
+
+### Plotting Power vs. True Value of μ
+```{r}
+power_data <- aggregate(reject_null ~ mu, data = results, FUN = mean)
+
+ggplot(power_data, aes(x = mu, y = reject_null)) +
+  geom_line() +
+  labs(x = "True value of μ", y = "Power of the Test", title = "Power vs. True Value of μ")
+```
+
