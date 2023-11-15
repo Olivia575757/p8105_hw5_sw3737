@@ -11,6 +11,7 @@ library(dplyr)
 library(tidyr)
 library(readr)
 library(ggplot2)
+library(broom)
 ```
 
 # Problem 1
@@ -55,4 +56,17 @@ ggplot(tidy_data, aes(x = week, y = observation, group = interaction(arm, subjec
 ```
 
 Comment: The spaghetti plot suggests a divergence in trajectories between the control and experimental groups over time, with the experimental group showing an upward trend, indicating a potential effect of the treatment. In contrast, the control group's measurements remain relatively constant. The variability within the experimental group is also noticeably greater, implying a varied response to the intervention across different subjects.
+
+# Problem 3
+
+## Defining Parameters
+```{r}
+set.seed(123)  
+
+n <- 30
+sigma <- 5
+mu_values <- 0:6
+alpha <- 0.05
+num_datasets <- 5000
+```
 
