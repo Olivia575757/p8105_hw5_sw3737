@@ -97,3 +97,16 @@ ggplot(power_data, aes(x = mu, y = reject_null)) +
   labs(x = "True value of μ", y = "Power of the Test", title = "Power vs. True Value of μ")
 ```
 
+### Plotting Average Estimate of μ̂ vs. True Value of μ
+```{r}
+avg_mu_hat <- aggregate(mu_hat ~ mu, data = results, FUN = mean)
+
+avg_mu_hat_reject <- aggregate(mu_hat ~ mu, data = results[results$reject_null == TRUE, ], FUN = mean)
+
+ggplot() +
+  geom_line(data = avg_mu_hat, aes(x = mu, y = mu_hat), color = "lightblue") +
+  geom_line(data = avg_mu_hat_reject, aes(x = mu, y = mu_hat), color = "pink") +
+  labs(x = "True value of μ", y = "Average estimate of μ̂", title = "Average Estimate of μ̂ vs. True Value of μ") +
+  scale_color_manual("", breaks = c("lightblue", "pink"), values = c("lightblue" = "All Samples", "pink" = "Null Rejected"))
+```
+
