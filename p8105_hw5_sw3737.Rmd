@@ -10,6 +10,7 @@ library(purrr)
 library(dplyr)
 library(tidyr)
 library(readr)
+library(ggplot2)
 ```
 
 # Problem 1
@@ -17,17 +18,39 @@ library(readr)
 ## Creating a Dataframe and Binding the Data
 ```{r}
 file_names <- list.files(path = "data", pattern = "*.csv", full.names = TRUE)
-data_list <- map(file_names, read_csv)
-combined_data <- bind_rows(data_list, .id = "subject_id")
+
+combined_data <- map_df(file_names, function(file_name) {
+  data <- read_csv(file_name)
+  
+  data <- data %>%
+    mutate(
+      arm = ifelse(grepl("con", file_name), "control", "experimental"),
+      subject_id = gsub(".*_(\\d+).csv", "\\1", basename(file_name))
+    )
+
+  return(data)
+})
 ```
 
 ## Tidying the Data
 ```{r}
-combined_data <- combined_data %>%
-  mutate(arm = ifelse(grepl("con", subject_id), "control", "experimental"),
-         subject_id = gsub(".*_(\\d+)", "\\1", subject_id)) %>%
-  pivot_longer(cols = starts_with("week"), 
-               names_to = "week", 
-               values_to = "observation")
+tidy_data <- combined_data %>%
+  pivot_longer(
+    cols = starts_with("week"), 
+    names_to = "week", 
+    values_to = "observation"
+  )
+```
+
+## Creating a Spaghetti Plot
+```{r}
+ggplot(tidy_data, aes(x = week, y = observation, group = interaction(arm, subject_id), color = arm)) +
+  geom_line() +
+  scale_color_manual(values = c("control" = "pink", "experimental" = "lightblue")) +
+  labs(title = "Observations Over Time by Subject",
+       x = "Week",
+       y = "Observation",
+       color = "Group") +
+  theme_minimal()
 ```
 
