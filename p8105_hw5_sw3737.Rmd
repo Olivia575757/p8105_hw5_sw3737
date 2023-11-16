@@ -14,7 +14,7 @@ library(ggplot2)
 library(broom)
 ```
 
-# Problem 1
+# Problem 2
 
 ## Creating a Dataframe and Binding the Data
 ```{r}
@@ -45,14 +45,20 @@ tidy_data <- combined_data %>%
 
 ## Creating a Spaghetti Plot
 ```{r}
-ggplot(tidy_data, aes(x = week, y = observation, group = interaction(arm, subject_id), color = arm)) +
+tidy_data <- tidy_data %>%
+  mutate(
+    arm = factor(arm, levels = c("experimental", "control")),
+    subject_id = as.factor(subject_id)
+  )
+
+ggplot(tidy_data, aes(x = week, y = observation, group = interaction(arm, subject_id), color = subject_id)) +
   geom_line() +
-  scale_color_manual(values = c("control" = "pink", "experimental" = "lightblue")) +
+  scale_color_discrete(guide = guide_legend(title = "Subject ID")) +
   labs(title = "Observations Over Time by Subject",
        x = "Week",
-       y = "Observation",
-       color = "Group") +
-  theme_minimal()
+       y = "Observation") +
+  theme_minimal() +
+  facet_wrap(~arm, scales = "free_y", ncol = 1) 
 ```
 
 Comment: The spaghetti plot suggests a divergence in trajectories between the control and experimental groups over time, with the experimental group showing an upward trend, indicating a potential effect of the treatment. In contrast, the control group's measurements remain relatively constant. The variability within the experimental group is also noticeably greater, implying a varied response to the intervention across different subjects.
@@ -78,8 +84,8 @@ for (mu in mu_values) {
   for (i in 1:num_datasets) {
     sample_data <- rnorm(n, mean = mu, sd = sigma)
     test_result <- broom::tidy(t.test(sample_data, mu = 0))
-    mu_hat <- test_result$estimate
-    p_value <- test_result$p.value
+    mu_hat <- test_result[["estimate"]]
+    p_value <- test_result[["p.value"]]
     reject_null <- p_value < alpha
     results <- rbind(results, data.frame(mu, p_value, mu_hat, reject_null))
   }
@@ -94,19 +100,27 @@ power_data <- aggregate(reject_null ~ mu, data = results, FUN = mean)
 
 ggplot(power_data, aes(x = mu, y = reject_null)) +
   geom_line() +
+  geom_point() +
   labs(x = "True value of μ", y = "Power of the Test", title = "Power vs. True Value of μ")
 ```
+
+The plot shows a clear positive association between effect size and power: as the true value of μ increases, the power of the test also increases. This indicates that the ability of the test to reject a false null hypothesis improves with larger effect sizes. When the difference between the true mean and the null hypothesis mean grows, the test is more likely to detect that difference as significant.
 
 ### Plotting Average Estimate of μ̂ vs. True Value of μ
 ```{r}
 avg_mu_hat <- aggregate(mu_hat ~ mu, data = results, FUN = mean)
 
+# Average estimate of mu_hat when null is rejected
 avg_mu_hat_reject <- aggregate(mu_hat ~ mu, data = results[results$reject_null == TRUE, ], FUN = mean)
 
 ggplot() +
   geom_line(data = avg_mu_hat, aes(x = mu, y = mu_hat), color = "lightblue") +
+  geom_point(data = avg_mu_hat, aes(x = mu, y = mu_hat), color = "lightblue") +
   geom_line(data = avg_mu_hat_reject, aes(x = mu, y = mu_hat), color = "pink") +
+  geom_point(data = avg_mu_hat_reject, aes(x = mu, y = mu_hat), color = "pink") +
   labs(x = "True value of μ", y = "Average estimate of μ̂", title = "Average Estimate of μ̂ vs. True Value of μ") +
   scale_color_manual("", breaks = c("lightblue", "pink"), values = c("lightblue" = "All Samples", "pink" = "Null Rejected"))
+
 ```
 
+The plot indicates that the sample average of μ̂ for tests where the null hypothesis is rejected is approximately equal to the true value of μ, especially as the true value of μ increases. There exists discrepancy which can be attributed to the fact that when the null hypothesis is rejected, it is often because the sample mean is sufficiently extreme, thus leading to an overestimate of the population mean due to sampling variability.
